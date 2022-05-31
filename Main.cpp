@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <thread>
 #include <chrono>
+#include <iostream>
 
 /*
 To do:
@@ -22,12 +23,12 @@ void InputLoop()
 	int yDes = 0;
 
 	int sizeofinput = sizeof(INPUT);
+	int microsecondPerTick = 10000;
 	
 	bool lButton = false;
 	bool rButton = false;
 	bool mButton = false;
-	bool speedUp = false;
-	bool speedDown = false;
+	bool exit = false;
 
 	INPUT inputsDown[3];
 	INPUT inputsUp[3];
@@ -73,6 +74,8 @@ void InputLoop()
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);;
+	auto exitStart = std::chrono::high_resolution_clock::now();
+	auto exitEnd = std::chrono::high_resolution_clock::now();
 
 	int timer = 500;
 
@@ -157,6 +160,27 @@ void InputLoop()
 				SendInput(1, &inputsUp[2], sizeofinput);
 			mButton = false;
 		}
+		// exit
+		if (GetAsyncKeyState(VK_END))
+		{
+			if (exit == false)
+			{
+				exitStart = std::chrono::high_resolution_clock::now();
+				exit = true;
+			}
+			else
+			{
+				exitEnd = std::chrono::high_resolution_clock::now();
+				duration = std::chrono::duration_cast<std::chrono::microseconds>(exitEnd - exitStart);
+
+				if (duration.count() > 5000000)
+					return;
+			}
+		}
+		else
+		{
+			exit = false;
+		}
 		
 		if (!movedX)
 		{
@@ -210,21 +234,19 @@ void InputLoop()
 			ySpeed = maxSpeed;
 		if (ySpeed < -maxSpeed)
 			ySpeed = -maxSpeed;
-		
 
 		/*
 		GetCursorPos(&MousePos);
 		SetCursorPos(MousePos.x + (int)xSpeed, MousePos.y + (int)ySpeed);
 		GetCursorPos(&MousePos);
 		/*/
-
 		mouseInput.mi.dx = (int)xSpeed;
 		mouseInput.mi.dy = (int)ySpeed;
 		SendInput(1, &mouseInput, sizeofinput);
 		//*/
 		end = std::chrono::high_resolution_clock::now();
 		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-		std::this_thread::sleep_for(std::chrono::microseconds(10000 - duration.count()));
+		std::this_thread::sleep_for(std::chrono::microseconds(microsecondPerTick - duration.count()));
 	}
 }
 
