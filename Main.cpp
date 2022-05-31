@@ -2,12 +2,20 @@
 #include <thread>
 #include <chrono>
 
+/*
+To do:
+flip-phone-9-keys keyboard
+scroll
+maybe the sound board?
+*/
+
 void InputLoop()
 {
-	float maxSpeed = 10.0f;
-	float acceleration = 0.5f;
-	float brakeSpeed = 1.0f;
-	float brakeSpeedSingleAxis = 0.5f;
+	float m = 1;
+	float maxSpeed = 15.0f * m;
+	float acceleration = 1.0f * m;
+	float brakeSpeed = 1.0f * m;
+	float brakeSpeedSingleAxis = 1.0f * m;
 	float xSpeed = 0.0f;
 	float ySpeed = 0.0f;
 	int xDes = 0;
@@ -18,6 +26,8 @@ void InputLoop()
 	bool lButton = false;
 	bool rButton = false;
 	bool mButton = false;
+	bool speedUp = false;
+	bool speedDown = false;
 
 	INPUT inputsDown[3];
 	INPUT inputsUp[3];
@@ -46,7 +56,7 @@ void InputLoop()
 	inputsDown[0].mi.time = 0;
 	inputsDown[1].mi.time = 0;
 	inputsDown[2].mi.time = 0;
-
+	
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD5);
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD8);
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD6);
@@ -54,16 +64,29 @@ void InputLoop()
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD7);
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD9);
 	RegisterHotKey(NULL, 1, MOD_NOREPEAT, VK_NUMPAD2);
-
+	
 	POINT MousePos;
 	
 	bool movedY;
 	bool movedX;
 
+	auto start = std::chrono::high_resolution_clock::now();
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);;
+
+	int timer = 500;
+
+	INPUT mouseInput;
+	mouseInput.type = INPUT_MOUSE;
+	mouseInput.mi.time = 0;
+	mouseInput.mi.dwFlags = MOUSEEVENTF_MOVE;
+	
 	while (true)
 	{
-		auto start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::high_resolution_clock::now();
 		
+		timer--;
+
 		movedY = false;
 		movedX = false;
 
@@ -134,8 +157,7 @@ void InputLoop()
 				SendInput(1, &inputsUp[2], sizeofinput);
 			mButton = false;
 		}
-		// scroll up
-
+		
 		if (!movedX)
 		{
 			if (movedY)
@@ -178,21 +200,35 @@ void InputLoop()
 					ySpeed = 0;
 			}
 		}
+
+		if (xSpeed > maxSpeed)
+			xSpeed = maxSpeed;
+		if (xSpeed < -maxSpeed)
+			xSpeed = -maxSpeed;
+
+		if (ySpeed > maxSpeed)
+			ySpeed = maxSpeed;
+		if (ySpeed < -maxSpeed)
+			ySpeed = -maxSpeed;
+		
+
+		/*
 		GetCursorPos(&MousePos);
 		SetCursorPos(MousePos.x + (int)xSpeed, MousePos.y + (int)ySpeed);
 		GetCursorPos(&MousePos);
-		
-		auto end = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);;
+		/*/
+
+		mouseInput.mi.dx = (int)xSpeed;
+		mouseInput.mi.dy = (int)ySpeed;
+		SendInput(1, &mouseInput, sizeofinput);
+		//*/
+		end = std::chrono::high_resolution_clock::now();
+		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 		std::this_thread::sleep_for(std::chrono::microseconds(10000 - duration.count()));
 	}
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	std::thread t_inputmanager(InputLoop);
-
-	while (true) {}
-
-	t_inputmanager.detach();
+	InputLoop();
 }
