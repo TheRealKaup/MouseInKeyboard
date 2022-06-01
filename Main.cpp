@@ -3,19 +3,19 @@
 #include <chrono>
 
 /*
-To do:
-scroll
+Future features:
 flip-phone-9-keys keyboard
-maybe the sound board?
-GUI
-Funny idea that is probably impossible: when starting the program the user's mouse will move to where the mouse in the exe icon at
+soundboard
+HUD
 */
 
 void InputLoop()
 {
+	bool active = true;
+
 	float m = 1;
 	float wM = 1;
-
+	
 	float acceleration = 1.0f * m;
 	float wAcceleration = 3.0f * wM;
 
@@ -36,6 +36,7 @@ void InputLoop()
 	bool lButton = false;
 	bool rButton = false;
 	bool mButton = false;
+	bool activate = false;
 	bool exit = false;
 
 	INPUT mouseMove;
@@ -93,11 +94,14 @@ void InputLoop()
 	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD8);
 	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD9);
 	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD0);
+	RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_DOWN);
+	RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_UP);
+	RegisterHotKey(NULL, 1, MOD_NOREPEAT | VK_RSHIFT, VK_RIGHT);
+	RegisterHotKey(NULL, 1, MOD_NOREPEAT | VK_RSHIFT, VK_LEFT);
 	
 	bool movedY = false;
 	bool movedX = false;
 	bool movedW = false;
-
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto exitStart = std::chrono::high_resolution_clock::now();
@@ -106,8 +110,67 @@ void InputLoop()
 	
 	while (true)
 	{
+		// exit
+		if (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_RIGHT))
+		{
+			if (exit == false)
+			{
+				exitStart = std::chrono::high_resolution_clock::now();
+				exit = true;
+			}
+			else
+			{
+				exitEnd = std::chrono::high_resolution_clock::now();
+				duration = std::chrono::duration_cast<std::chrono::microseconds>(exitEnd - exitStart);
+
+				if (duration.count() > 5000000)
+					return;
+			}
+		}
+		else
+		{
+			exit = false;
+		}
+		
+		if (GetAsyncKeyState(VK_RSHIFT) && GetAsyncKeyState(VK_RIGHT))
+		{
+			if (!activate)
+			{
+				active = !active;
+				activate = true;
+				if (active)
+				{
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD1);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD2);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD3);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD4);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD5);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD6);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD7);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD8);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD9);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD0);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_DOWN);
+					RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_UP);
+				}
+				else
+					UnregisterHotKey(NULL, 0);
+			}
+		}
+		else
+		{
+			activate = false;
+		}
+
+		end = std::chrono::high_resolution_clock::now();
+		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+		std::this_thread::sleep_for(std::chrono::microseconds(mcrosecsPerTick - duration.count()));
+
 		start = std::chrono::high_resolution_clock::now();
 
+		if (!active)
+			continue;
+		
 		movedY = false;
 		movedX = false;
 
@@ -186,28 +249,6 @@ void InputLoop()
 				SendInput(1, &mouseMidUp, sizeofinput);
 			mButton = false;
 		}
-		// exit
-		if (GetAsyncKeyState(VK_END))
-		{
-			if (exit == false)
-			{
-				exitStart = std::chrono::high_resolution_clock::now();
-				exit = true;
-			}
-			else
-			{
-				exitEnd = std::chrono::high_resolution_clock::now();
-				duration = std::chrono::duration_cast<std::chrono::microseconds>(exitEnd - exitStart);
-
-				if (duration.count() > 5000000)
-					return;
-			}
-		}
-		else
-		{
-			exit = false;
-		}
-
 		// wUp
 		if (GetAsyncKeyState(VK_NUMPAD1))
 		{
@@ -289,13 +330,10 @@ void InputLoop()
 
 		mouseMove.mi.dx = (long)xSpeed;
 		mouseMove.mi.dy = (long)ySpeed;
-		SendInput(1, &mouseMove, sizeofinput);
 		mouseWheel.mi.mouseData = (unsigned long)(wSpeed);
-		SendInput(1, &mouseWheel, sizeofinput);
 		
-		end = std::chrono::high_resolution_clock::now();
-		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-		std::this_thread::sleep_for(std::chrono::microseconds(mcrosecsPerTick - duration.count()));
+		SendInput(1, &mouseMove, sizeofinput);
+		SendInput(1, &mouseWheel, sizeofinput);
 	}
 }
 
