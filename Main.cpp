@@ -7,7 +7,6 @@
 
 /*
 Future features:
-config
 flip-phone-9-keys keyboard
 soundboard
 HUD
@@ -116,9 +115,6 @@ namespace Data
 
 	void SetValue(std::string name, std::string value)
 	{
-		std::cout << name << std::endl;
-		std::cout << value << std::endl;
-
 		if (name == "acceleration")
 			acceleration = std::stof(value);
 		
@@ -276,6 +272,7 @@ namespace Data
 		RegisterHotKey(NULL, 0, MOD_NOREPEAT | functionKey, modeDownKey);
 	}	
 
+	/*
 	void PrintValues()
 	{
 		std::cout << mouseMoveUpKey << std::endl;
@@ -293,6 +290,7 @@ namespace Data
 		std::cout << modeUpKey << std::endl;
 		std::cout << modeDownKey << std::endl;
 	}
+	*/
 }
 
 using namespace Data;
@@ -302,8 +300,6 @@ void InputLoop()
 	InitializeInputs();
 	ReadConfig();
 	RegisterHotKeys();
-	
-	PrintValues();
 
 	while (true)
 	{
@@ -534,8 +530,8 @@ void InputLoop()
 	}
 }
 
-int main()
-// int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+// int main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	InputLoop();
 }
