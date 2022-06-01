@@ -113,6 +113,15 @@ namespace Data
 		mouseMidUp.mi.time = 0;
 	}
 
+	float ConvertValue(std::string value)
+	{
+		if (value.size() >= 2)
+			if (value[0] == '0' && value[1] == 'x')
+				return std::stoi(value, nullptr, 16);
+		else if (value.size() > 0)
+			return std::stof(value);
+	}
+	
 	void SetValue(std::string name, std::string value)
 	{
 		if (name == "acceleration")
@@ -145,46 +154,46 @@ namespace Data
 
 		
 		else if (name == "mouseMoveUp")
-			mouseMoveUpKey = std::stoi(value, nullptr, 16);
+			mouseMoveUpKey = ConvertValue(value);
 		
 		else if (name == "mouseMoveDown")
-			mouseMoveDownKey = std::stoi(value, nullptr, 16);
+			mouseMoveDownKey = ConvertValue(value);
 		
 		else if (name == "mouseMoveLeft")
-			mouseMoveLeftKey = std::stoi(value, nullptr, 16);
+			mouseMoveLeftKey = ConvertValue(value);
 		
 		else if (name == "mouseMoveRight")
-			mouseMoveRightKey = std::stoi(value, nullptr, 16);
+			mouseMoveRightKey = ConvertValue(value);
 		
 		else if (name == "mouseWheelUp")
-			mouseWheelUpKey = std::stoi(value, nullptr, 16);
+			mouseWheelUpKey = ConvertValue(value);
 		
 		else if (name == "mouseWheelDown")
-			mouseWheelDownKey = std::stoi(value, nullptr, 16);
+			mouseWheelDownKey = ConvertValue(value);
 		
 		else if (name == "mouseLeft")
-			mouseLeftKey = std::stoi(value, nullptr, 16);
+			mouseLeftKey = ConvertValue(value);
 		
 		else if (name == "mouseRight")
-			mouseRightKey = std::stoi(value, nullptr, 16);
+			mouseRightKey = ConvertValue(value);
 		
 		else if (name == "mouseMid")
-			mouseMidKey = std::stoi(value, nullptr, 16);
+			mouseMidKey = ConvertValue(value);
 		
 		else if (name == "function")
-			functionKey = std::stoi(value, nullptr, 16);
+			functionKey = ConvertValue(value);
 		
 		else if (name == "exit")
-			exitKey = std::stoi(value, nullptr, 16);
+			exitKey = ConvertValue(value);
 		
 		else if (name == "activate")
-			activateKey = std::stoi(value, nullptr, 16);
+			activateKey = ConvertValue(value);
 		
 		else if (name == "modeUp")
-			modeUpKey = std::stoi(value, nullptr, 16);
+			modeUpKey = ConvertValue(value);
 		
 		else if (name == "modeDown")
-			modeDownKey = std::stoi(value, nullptr, 16);
+			modeDownKey = ConvertValue(value);
 	}
 
 	void ReadConfig()
