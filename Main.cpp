@@ -1,21 +1,50 @@
 #include <Windows.h>
 #include <thread>
 #include <chrono>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 /*
 Future features:
+config
 flip-phone-9-keys keyboard
 soundboard
 HUD
 */
 
-void InputLoop()
+namespace Data
 {
 	bool active = true;
+	int mode = 0;
+	
+	INPUT mouseMove;
+	INPUT mouseWheel;
+	INPUT mouseLDown;
+	INPUT mouseLUp;
+	INPUT mouseRDown;
+	INPUT mouseRUp;
+	INPUT mouseMidDown;
+	INPUT mouseMidUp;
 
+	int mouseMoveUpKey;
+	int mouseMoveDownKey;
+	int mouseMoveRightKey;
+	int mouseMoveLeftKey;
+	int mouseWheelUpKey;
+	int mouseWheelDownKey;
+	int mouseLeftKey;
+	int mouseRightKey;
+	int mouseMidKey;
+	int functionKey;
+	int exitKey;
+	int activateKey;
+	int modeUpKey;
+	int modeDownKey;
+	
 	float m = 1;
 	float wM = 1;
-	
+
 	float acceleration = 1.0f * m;
 	float wAcceleration = 3.0f * wM;
 
@@ -25,98 +54,266 @@ void InputLoop()
 	float brakeSpeed = 1.0f * m;
 	float brakeSpeedSingleAxis = 1.0f * m;
 	float wBrakeSpeed = 3.0f * wM;
-	
+
 	float xSpeed = 0.0f;
 	float ySpeed = 0.0f;
 	float wSpeed = 0.0f;
-	
+
 	int sizeofinput = sizeof(INPUT);
 	int mcrosecsPerTick = 10000;
-	
+
 	bool lButton = false;
 	bool rButton = false;
 	bool mButton = false;
-	bool activate = false;
-	bool exit = false;
-
-	INPUT mouseMove;
-	
-	INPUT mouseLDown;
-	INPUT mouseLUp;
-	
-	INPUT mouseRDown;
-	INPUT mouseRUp;
-	
-	INPUT mouseMidDown;
-	INPUT mouseMidUp;
-
-	INPUT mouseWheel;
-
-	mouseMove.type = INPUT_MOUSE;
-	mouseMove.mi.time = 0;
-	mouseMove.mi.dwFlags = MOUSEEVENTF_MOVE;
-
-	mouseLDown.type = INPUT_MOUSE;
-	mouseLDown.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-	mouseLDown.mi.time = 0;
-	
-	mouseLUp.type = INPUT_MOUSE;
-	mouseLUp.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-	mouseLUp.mi.time = 0;
-
-	mouseRDown.type = INPUT_MOUSE;
-	mouseRDown.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-	mouseRDown.mi.time = 0;
-
-	mouseRUp.type = INPUT_MOUSE;
-	mouseRUp.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-	mouseRUp.mi.time = 0;
-
-	mouseMidDown.type = INPUT_MOUSE;
-	mouseMidDown.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
-	mouseMidDown.mi.time = 0;
-
-	mouseMidUp.type = INPUT_MOUSE;
-	mouseMidUp.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
-	mouseMidUp.mi.time = 0;
-
-	mouseWheel.type = INPUT_MOUSE;
-	mouseWheel.mi.dwFlags = MOUSEEVENTF_WHEEL;
-	mouseWheel.mi.time = 0;
-
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD1);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD2);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD3);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD4);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD5);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD6);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD7);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD8);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD9);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD0);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_DOWN);
-	RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_UP);
-	RegisterHotKey(NULL, 1, MOD_NOREPEAT | VK_RSHIFT, VK_RIGHT);
-	RegisterHotKey(NULL, 1, MOD_NOREPEAT | VK_RSHIFT, VK_LEFT);
-	
+	bool activating = false;
+	bool exiting = false;
+	bool modeUpButton = false;
+	bool modeDownButton = false;
 	bool movedY = false;
 	bool movedX = false;
 	bool movedW = false;
+
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto exitStart = std::chrono::high_resolution_clock::now();
 	auto exitEnd = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	
+	void InitializeInputs()
+	{
+		mouseMove.type = INPUT_MOUSE;
+		mouseMove.mi.time = 0;
+		mouseMove.mi.dwFlags = MOUSEEVENTF_MOVE;
+
+		mouseWheel.type = INPUT_MOUSE;
+		mouseWheel.mi.dwFlags = MOUSEEVENTF_WHEEL;
+		mouseWheel.mi.time = 0;
+
+		mouseLDown.type = INPUT_MOUSE;
+		mouseLDown.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		mouseLDown.mi.time = 0;
+
+		mouseLUp.type = INPUT_MOUSE;
+		mouseLUp.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		mouseLUp.mi.time = 0;
+
+		mouseRDown.type = INPUT_MOUSE;
+		mouseRDown.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+		mouseRDown.mi.time = 0;
+
+		mouseRUp.type = INPUT_MOUSE;
+		mouseRUp.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+		mouseRUp.mi.time = 0;
+
+		mouseMidDown.type = INPUT_MOUSE;
+		mouseMidDown.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+		mouseMidDown.mi.time = 0;
+
+		mouseMidUp.type = INPUT_MOUSE;
+		mouseMidUp.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+		mouseMidUp.mi.time = 0;
+	}
+
+	void SetValue(std::string name, std::string value)
+	{
+		std::cout << name << std::endl;
+		std::cout << value << std::endl;
+
+		if (name == "acceleration")
+			acceleration = std::stof(value);
+		
+		else if (name == "wAcceleration")
+			wAcceleration = std::stof(value);
+		
+		else if (name == "maxSpeed")
+			maxSpeed = std::stof(value);
+		
+		else if (name == "wMaxSpeed")
+			wMaxSpeed = std::stof(value);
+		
+		else if (name == "brakeSpeed")
+			brakeSpeed = std::stof(value);
+		
+		else if (name == "brakeSpeedSingleAxis")
+			brakeSpeedSingleAxis = std::stof(value);
+		
+		else if (name == "wBrakeSpeed")
+			wBrakeSpeed = std::stof(value);
+		
+		else if (name == "m")
+			m = std::stof(value);
+		
+		else if (name == "wM")
+			wM = std::stof(value);
+
+
+		
+		else if (name == "mouseMoveUp")
+			mouseMoveUpKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseMoveDown")
+			mouseMoveDownKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseMoveLeft")
+			mouseMoveLeftKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseMoveRight")
+			mouseMoveRightKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseWheelUp")
+			mouseWheelUpKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseWheelDown")
+			mouseWheelDownKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseLeft")
+			mouseLeftKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseRight")
+			mouseRightKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "mouseMid")
+			mouseMidKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "function")
+			functionKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "exit")
+			exitKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "activate")
+			activateKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "modeUp")
+			modeUpKey = std::stoi(value, nullptr, 16);
+		
+		else if (name == "modeDown")
+			modeDownKey = std::stoi(value, nullptr, 16);
+	}
+
+	void ReadConfig()
+	{
+		std::ifstream configFile("Config.txt", std::ios::in);
+		std::string config;
+		std::string tempLine;
+
+		while (std::getline(configFile, tempLine))
+			config += tempLine + "\n";
+		
+		configFile.close();
+		
+		enum class ReadMode { commentMode, nameMode, valueMode };
+		ReadMode readMode = ReadMode::nameMode;
+		std::string name;
+		std::string value;
+		
+		for (int i = 0; i < config.size(); i++)
+		{
+			char c = config[i];
+			
+			if (c == ' ')
+				continue;
+			
+			// comment mode
+			if (c == '#')
+			{
+				if (readMode == ReadMode::valueMode)
+				{
+					SetValue(name, value);
+					value = "";
+					name = "";
+				}
+				readMode = ReadMode::commentMode;
+				continue;
+			}
+			if (readMode == ReadMode::commentMode)
+			{
+				if (c == '\n')
+					readMode = ReadMode::nameMode;
+			}
+
+			// name mode
+			else if (readMode == ReadMode::nameMode)
+			{
+				if (c == '=')
+					readMode = ReadMode::valueMode;
+				else
+					name.push_back(c);
+			}
+
+			// value mode
+			else
+			{
+				if (c == '\n')
+				{
+					SetValue(name, value);
+					value = "";
+					name = "";
+					readMode = ReadMode::nameMode;
+				}
+				else
+					value.push_back(c);
+			}
+
+			continue;
+		}
+	}
+
+	void RegisterHotKeys()
+	{
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseMoveUpKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseMoveDownKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseMoveRightKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseMoveLeftKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseWheelUpKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseWheelDownKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseLeftKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseRightKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT, mouseMidKey);
+		RegisterHotKey(NULL, 1, MOD_NOREPEAT | functionKey, exitKey);
+		RegisterHotKey(NULL, 1, MOD_NOREPEAT | functionKey, activateKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT | functionKey, modeUpKey);
+		RegisterHotKey(NULL, 0, MOD_NOREPEAT | functionKey, modeDownKey);
+	}	
+
+	void PrintValues()
+	{
+		std::cout << mouseMoveUpKey << std::endl;
+		std::cout << mouseMoveDownKey << std::endl;
+		std::cout << mouseMoveRightKey << std::endl;
+		std::cout << mouseMoveLeftKey << std::endl;
+		std::cout << mouseWheelUpKey << std::endl;
+		std::cout << mouseWheelDownKey << std::endl;
+		std::cout << mouseLeftKey << std::endl;
+		std::cout << mouseRightKey << std::endl;
+		std::cout << mouseMidKey << std::endl;
+		std::cout << functionKey << std::endl;
+		std::cout << exitKey << std::endl;
+		std::cout << activateKey << std::endl;
+		std::cout << modeUpKey << std::endl;
+		std::cout << modeDownKey << std::endl;
+	}
+}
+
+using namespace Data;
+
+void InputLoop()
+{
+	InitializeInputs();
+	ReadConfig();
+	RegisterHotKeys();
+	
+	PrintValues();
+
 	while (true)
 	{
 		// exit
-		if (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_RIGHT))
+		if (GetAsyncKeyState(functionKey) && GetAsyncKeyState(exitKey))
 		{
-			if (exit == false)
+			if (exiting == false)
 			{
 				exitStart = std::chrono::high_resolution_clock::now();
-				exit = true;
+				exiting = true;
 			}
 			else
 			{
@@ -128,39 +325,23 @@ void InputLoop()
 			}
 		}
 		else
-		{
-			exit = false;
-		}
+			exiting = false;
 		
-		if (GetAsyncKeyState(VK_RSHIFT) && GetAsyncKeyState(VK_RIGHT))
+		// activate
+		if (GetAsyncKeyState(functionKey) && GetAsyncKeyState(activateKey))
 		{
-			if (!activate)
+			if (!activating)
 			{
 				active = !active;
-				activate = true;
+				activating = true;
 				if (active)
-				{
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD1);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD2);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD3);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD4);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD5);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD6);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD7);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD8);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD9);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT, VK_NUMPAD0);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_DOWN);
-					RegisterHotKey(NULL, 0, MOD_NOREPEAT | VK_RSHIFT, VK_UP);
-				}
+					RegisterHotKeys();
 				else
 					UnregisterHotKey(NULL, 0);
 			}
 		}
 		else
-		{
-			activate = false;
-		}
+			activating = false;
 
 		end = std::chrono::high_resolution_clock::now();
 		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -171,11 +352,35 @@ void InputLoop()
 		if (!active)
 			continue;
 		
+		modeUpButton = false;
+		modeDownButton = false;
 		movedY = false;
 		movedX = false;
-
+		movedW = false;
+		
+		// mode
+		if (GetAsyncKeyState(functionKey) && GetAsyncKeyState(modeUpKey))
+		{
+			if (!modeUpButton)
+			{
+				modeUpButton = true;
+				mode++;
+				if (mode > 1)
+					mode = 0;
+			}
+		}
+		if (GetAsyncKeyState(functionKey) && GetAsyncKeyState(modeDownKey))
+		{
+			if (!modeDownButton)
+			{
+				modeDownButton = true;
+				mode--;
+				if (mode < 0)
+					mode = 1;
+			}
+		}
 		// down
-		if (GetAsyncKeyState(VK_NUMPAD5))
+		if (GetAsyncKeyState(mouseMoveDownKey))
 		{
 			movedY = true;
 			if (ySpeed < maxSpeed)
@@ -184,7 +389,7 @@ void InputLoop()
 				ySpeed = maxSpeed;
 		}
 		// up
-		if (GetAsyncKeyState(VK_NUMPAD8))
+		if (GetAsyncKeyState(mouseMoveUpKey))
 		{
 			movedY = true;
 			if (ySpeed > -maxSpeed)
@@ -193,7 +398,7 @@ void InputLoop()
 				ySpeed = -maxSpeed;
 		}
 		// right
-		if (GetAsyncKeyState(VK_NUMPAD6))
+		if (GetAsyncKeyState(mouseMoveRightKey))
 		{
 			movedX = true;
 			if (xSpeed < maxSpeed)
@@ -202,7 +407,7 @@ void InputLoop()
 				xSpeed = maxSpeed;
 		}
 		// left
-		if (GetAsyncKeyState(VK_NUMPAD4))
+		if (GetAsyncKeyState(mouseMoveLeftKey))
 		{
 			movedX = true;
 			if (xSpeed > -maxSpeed)
@@ -211,7 +416,7 @@ void InputLoop()
 				xSpeed = -maxSpeed;
 		}
 		// mouseL
-		if (GetAsyncKeyState(VK_NUMPAD7))
+		if (GetAsyncKeyState(mouseLeftKey))
 		{
 			if (!lButton)
 				SendInput(1, &mouseLDown, sizeofinput);
@@ -224,7 +429,7 @@ void InputLoop()
 			lButton = false;
 		}
 		// mouseR
-		if (GetAsyncKeyState(VK_NUMPAD9))
+		if (GetAsyncKeyState(mouseRightKey))
 		{
 			if (!rButton)
 				SendInput(1, &mouseRDown, sizeofinput);
@@ -237,7 +442,7 @@ void InputLoop()
 			rButton = false;
 		}
 		// mouseM
-		if (GetAsyncKeyState(VK_NUMPAD2))
+		if (GetAsyncKeyState(mouseMidKey))
 		{
 			if (!mButton)
 				SendInput(1, &mouseMidDown, sizeofinput);
@@ -250,7 +455,7 @@ void InputLoop()
 			mButton = false;
 		}
 		// wUp
-		if (GetAsyncKeyState(VK_NUMPAD1))
+		if (GetAsyncKeyState(mouseWheelUpKey))
 		{
 			if (wSpeed < wMaxSpeed)
 				wSpeed += wAcceleration;
@@ -258,22 +463,14 @@ void InputLoop()
 				wSpeed = wMaxSpeed;
 			movedW = true;
 		}
-		else
-		{
-			movedW = false;
-		}
 		// wDown
-		if (GetAsyncKeyState(VK_NUMPAD0))
+		if (GetAsyncKeyState(mouseWheelDownKey))
 		{
 			if (wSpeed > -wMaxSpeed)
 				wSpeed -= wAcceleration;
 			if (wSpeed < -wMaxSpeed)
 				wSpeed = -wMaxSpeed;
 			movedW = true;
-		}
-		else if (!movedW) // lmao what a waste of time that was
-		{
-			movedW = false;
 		}
 		
 		if (!movedX)
@@ -337,7 +534,8 @@ void InputLoop()
 	}
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int main()
+// int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	InputLoop();
 }

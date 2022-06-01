@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -142,14 +142,17 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\MouseInKeyboard.ico" />
+    <Image Include="Rc\MouseInKeyboard.ico" />
     <Image Include="Resources\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Assets\resource.h" />
+    <ClInclude Include="Rc\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Assets\MouseInKeyboard.rc" />
+    <ResourceCompile Include="Rc\MouseInKeyboard.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

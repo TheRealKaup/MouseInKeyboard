@@ -1,0 +1,16 @@
+# https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+# <button> = <trigger>
+mouseMoveUp = 0x68
+mouseMoveDown = 0x65
+mouseMoveRight = 0x66
+mouseMoveLeft = 0x64
+mouseWheelUp = 0x61
+mouseWheelDown = 0x60
+mouseLeft = 0x67
+mouseRight = 0x69
+mouseMid = 0x62
+function = 0xA1
+exit = 0x27
+activate = 0x25
+modeUp = 0x26
+modeDown = 0x28
